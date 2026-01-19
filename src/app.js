@@ -39,6 +39,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Allow Cookies for Development
+// Ganti CORS configuration yang ada dengan:
+const cors = require("cors");
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
+
 // ============== ROUTES ==============
 
 const userRoutes = require("./modules/auth/route");
