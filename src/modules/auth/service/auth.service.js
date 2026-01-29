@@ -1,5 +1,7 @@
+// src/modules/auth/service/auth.service.js
+
 const bcrypt = require("bcryptjs");
-const User = require("./schema");
+const User = require("../schema/schema");
 
 class UserService {
   // Register user baru
@@ -112,7 +114,7 @@ class UserService {
     const user = await User.findByIdAndUpdate(
       userId,
       { name, email, role },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!user) {
@@ -133,7 +135,7 @@ class UserService {
     // Verify old password
     const isPasswordValid = await bcrypt.compare(
       oldPassword,
-      user.password_hash
+      user.password_hash,
     );
 
     if (!isPasswordValid) {
@@ -153,7 +155,7 @@ class UserService {
     const user = await User.findByIdAndUpdate(
       userId,
       { email_verified_at: new Date() },
-      { new: true }
+      { new: true },
     );
 
     if (!user) {
@@ -161,17 +163,6 @@ class UserService {
     }
 
     return user;
-  }
-
-  // Delete user
-  async deleteUser(userId) {
-    const user = await User.findByIdAndDelete(userId);
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    return { message: "User deleted successfully" };
   }
 
   // Get user by email

@@ -203,6 +203,6 @@ const homepageConfigSchema = new mongoose.Schema(
 );
 
 // Ensure only one homepage config exists
-homepageConfigSchema.index({ _id: 1 }, { unique: true });
+// homepageConfigSchema.index({ _id: 1 }, { unique: true });
 
 module.exports = mongoose.model("HomepageConfig", homepageConfigSchema);
