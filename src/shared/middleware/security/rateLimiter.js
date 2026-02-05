@@ -1,5 +1,5 @@
 const rateLimit = require("express-rate-limit");
-const RedisStore = require("rate-limit-redis");
+// const RedisStore = require("rate-limit-redis");
 // const redis = require("../../config/redis"); // Optional: jika pakai Redis
 const ApiError = require("../../utils/ApiError");
 
@@ -89,10 +89,30 @@ const dynamicLimiter = (req, res, next) => {
   return limiter(req, res, next);
 };
 
+/**
+ * Stricter rate limiter untuk password reset endpoints
+ * Prevent abuse
+ */
+const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // Max 3 requests per hour per IP
+  message: "Too many password reset attempts. Please try again after 1 hour",
+  skipSuccessfulRequests: false,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: "Too many password reset attempts. Please try again later.",
+    });
+  },
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
   heavyLimiter,
   publicLimiter,
   dynamicLimiter,
+  passwordResetLimiter,
 };

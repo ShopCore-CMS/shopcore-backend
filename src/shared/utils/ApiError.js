@@ -34,28 +34,28 @@ class ApiError extends Error {
    * Unauthorized - 401
    */
   static unauthorized(message = "Unauthorized") {
-    return new ApiError(401, message);
+    return new ApiError(401, message, errors);
   }
 
   /**
    * Forbidden - 403
    */
   static forbidden(message = "Forbidden") {
-    return new ApiError(403, message);
+    return new ApiError(403, message, errors);
   }
 
   /**
    * Not Found - 404
    */
   static notFound(message = "Resource not found") {
-    return new ApiError(404, message);
+    return new ApiError(404, message, errors);
   }
 
   /**
    * Conflict - 409
    */
   static conflict(message = "Conflict") {
-    return new ApiError(409, message);
+    return new ApiError(409, message, errors);
   }
 
   /**
@@ -69,14 +69,14 @@ class ApiError extends Error {
    * Internal Server Error - 500
    */
   static internal(message = "Internal Server Error") {
-    return new ApiError(500, message);
+    return new ApiError(500, message, errors);
   }
 
   /**
    * Service Unavailable - 503
    */
   static serviceUnavailable(message = "Service Unavailable") {
-    return new ApiError(503, message);
+    return new ApiError(503, message, errors);
   }
 
   /**

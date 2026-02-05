@@ -1,3 +1,4 @@
+// src\modules\user\schema\user.schema.js
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 

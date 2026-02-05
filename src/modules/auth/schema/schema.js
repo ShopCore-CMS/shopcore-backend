@@ -1,3 +1,5 @@
+// src\modules\auth\schema\schema.js
+
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
@@ -49,7 +51,7 @@ const userSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // Index untuk performance dan unique constraint

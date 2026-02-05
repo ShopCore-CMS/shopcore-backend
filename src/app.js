@@ -11,6 +11,7 @@ const routes = require("./routes/index");
 
 const errorHandler = require("./shared/middleware/errorHandler");
 const notFound = require("./shared/middleware/notFound");
+const passwordResetLimiter = require("./shared/middleware/security/rateLimiter");
 
 const app = express();
 
@@ -20,7 +21,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors(corsConfig));
 app.use(sessionConfig);
-app.use(errorHandler);
 
 // Routes
 app.use("/api", routes);
@@ -32,6 +32,8 @@ app.get("/health", (_, res) => {
 
 // 404 & Error handler
 app.use(notFound);
+app.use(errorHandler);
+
 app.use(errorHandler);
 
 module.exports = app;

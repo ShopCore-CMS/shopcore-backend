@@ -6,7 +6,6 @@
 const { z } = require("zod");
 const { ROLES } = require("../../../shared/constants/roles");
 
-// Register schema
 const registerSchema = z.object({
   body: z.object({
     name: z
@@ -25,6 +24,7 @@ const registerSchema = z.object({
       .enum([ROLES.STAFF, ROLES.CUSTOMER])
       .default(ROLES.CUSTOMER)
       .optional(),
+    status: z.enum(["active", "inactive"]).default("active").optional(),
   }),
 });
 
@@ -67,37 +67,44 @@ const forgotPasswordSchema = z.object({
       .string({ required_error: "Email is required" })
       .min(1, "Email cannot be empty")
       .email("Invalid email format")
-      .transform((email) => email.trim().toLowerCase())
-      .refine((email) => email.length <= 254, { message: "Email is too long" }),
+      .refine((email) => email.length <= 254, {
+        message: "Email is too long",
+      })
+      .transform((email) => email.trim().toLowerCase()),
   }),
 });
 
 // Reset password schema
-
 const resetPasswordSchema = z.object({
   body: z
     .object({
       token: z
         .string({ required_error: "Reset token is required" })
         .min(1, "Reset token cannot be empty")
-        .transform((token) => token.trim())
-        .refine((token) => /^[a-zA-Z0-9-_]+$/.test(token), {
+        .refine((token) => /^[a-zA-Z0-9-_]+$/.test(token.trim()), {
           message: "Invalid token format",
         })
-        .refine((token) => token.length >= 20 && token.length <= 500, {
-          message: "Invalid token length",
-        }),
+        .refine(
+          (token) => {
+            const trimmed = token.trim();
+            return trimmed.length >= 20 && trimmed.length <= 500;
+          },
+          {
+            message: "Invalid token length",
+          },
+        )
+        .transform((token) => token.trim()),
 
       newPassword: z
         .string({ required_error: "New password is required" })
         .min(8, "Password must be at least 8 characters")
+        .refine((password) => !/\s/.test(password), {
+          message: "Password cannot contain whitespace",
+        })
         .regex(
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])/,
           "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#)",
-        )
-        .refine((password) => !/\s/.test(password), {
-          message: "Password cannot contain whitespace",
-        }),
+        ),
 
       confirmPassword: z
         .string({ required_error: "Password confirmation is required" })

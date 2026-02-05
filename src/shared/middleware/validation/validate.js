@@ -32,10 +32,12 @@ const validate = (schema) => {
           message: err.message,
         }));
 
-        throw new ApiError(400, "Validation failed", formattedErrors);
+        // ✅ FIX: Gunakan return next() untuk pass error ke error handler
+        return next(new ApiError(422, "Validation failed", formattedErrors));
       }
 
-      next(error);
+      // Pass other errors to error handler
+      return next(error);
     }
   };
 };

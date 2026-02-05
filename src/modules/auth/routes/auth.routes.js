@@ -15,6 +15,10 @@ const {
   changePasswordSchema,
 } = require("../validators/auth.validator");
 const { csrfProtection } = require("../../../shared/middleware/security/csrf");
+const {
+  authLimiter,
+  passwordResetLimiter,
+} = require("../../../shared/middleware/security/rateLimiter");
 
 /**
  * Public routes (no authentication required)
@@ -45,23 +49,31 @@ router.post(
 router.post(
   "/forgot-password",
   // csrfProtection,
-  validate(forgotPasswordSchema),
+  // passwordResetLimiter,
+  // validate(forgotPasswordSchema),
   authController.forgotPassword,
 );
 
 // Reset password with token
 router.post(
   "/reset-password",
-  csrfProtection,
+  // csrfProtection,
+  authLimiter,
   validate(resetPasswordSchema),
   authController.resetPassword,
 );
 
+// Change password
+router.post(
+  "/change-password",
+  authenticate,
+  // csrfProtection,
+  validate(changePasswordSchema),
+  authController.changePassword,
+);
+
 // Verify email with token
 router.get("/verify-email/:token", authController.verifyEmail);
-
-// Get CSRF token (public - untuk form login/register)
-router.get("/csrf-token", csrfProtection, authController.getCsrfToken);
 
 /**
  * Protected routes (authentication required)
@@ -83,14 +95,5 @@ router.post(
 
 // Get current user profile
 router.get("/profile", authenticate, authController.getProfile);
-
-// Change password
-router.post(
-  "/change-password",
-  authenticate,
-  csrfProtection,
-  validate(changePasswordSchema),
-  authController.changePassword,
-);
 
 module.exports = router;
