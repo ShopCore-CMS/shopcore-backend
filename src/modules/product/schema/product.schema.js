@@ -1,103 +1,10 @@
 const mongoose = require("mongoose");
 
-// Category Schema
-const categorySchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    slug: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-    },
-    description: {
-      type: String,
-      trim: true,
-    },
-    parentCategory: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      default: null,
-    },
-    image: String,
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  {
-    timestamps: true,
-  },
-);
-
-// Index untuk hierarchical categories
-categorySchema.index({ parentCategory: 1 });
-categorySchema.index({ slug: 1 });
-
-// Virtual untuk count products
-categorySchema.virtual("productCount", {
-  ref: "Product",
-  localField: "_id",
-  foreignField: "category",
-  count: true,
-});
-
-// Tag Schema
-const tagSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-    slug: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-    },
-  },
-  {
-    timestamps: true,
-  },
-);
-
-// Virtual untuk count products
-tagSchema.virtual("productCount", {
-  ref: "Product",
-  localField: "_id",
-  foreignField: "tags",
-  count: true,
-});
-
-// Product Image Schema
-const productImageSchema = new mongoose.Schema(
-  {
-    url: {
-      type: String,
-      required: true,
-    },
-    alt: String,
-    order: {
-      type: Number,
-      default: 0,
-    },
-    isPrimary: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  { _id: true },
-);
-
+// Product Schema
 // Product Schema
 const productSchema = new mongoose.Schema(
   {
+    // ===== Basic Info =====
     title: {
       type: String,
       required: true,
@@ -122,16 +29,34 @@ const productSchema = new mongoose.Schema(
       type: String,
       maxlength: 160,
     },
+
+    // ===== Pricing =====
     price: {
       type: Number,
       required: true,
       min: 0,
     },
+    hasDiscount: {
+      type: Boolean,
+      default: false,
+    },
     comparePrice: {
-      // Harga coret
       type: Number,
       min: 0,
+      validate: {
+        validator: function (value) {
+          // comparePrice hanya boleh ada kalau diskon aktif
+          if (this.hasDiscount) {
+            return value && value > this.price;
+          }
+          return value === undefined;
+        },
+        message:
+          "Compare price must be greater than price when discount is enabled.",
+      },
     },
+
+    // ===== Inventory =====
     stock: {
       type: Number,
       required: true,
@@ -143,6 +68,8 @@ const productSchema = new mongoose.Schema(
       enum: ["in_stock", "out_of_stock", "pre_order"],
       default: "in_stock",
     },
+
+    // ===== Relations =====
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
@@ -154,30 +81,27 @@ const productSchema = new mongoose.Schema(
         ref: "Tag",
       },
     ],
+
+    // ===== Media =====
     images: {
-      type: [productImageSchema],
+      type: [productGallerySchema],
       validate: [arrayLimit, "Maximum 5 images allowed"],
     },
-    // Marketplace links
-    marketplaceLinks: {
-      shopee: String,
-      tokopedia: String,
-      bukalapak: String,
-      other: String,
+
+    // ===== E-commerce Link =====
+    ecommerceLink: {
+      type: String,
+      trim: true,
     },
-    // SEO
-    seo: {
-      title: String,
-      description: String,
-      keywords: [String],
-    },
-    // Featured product
+
+    // ===== Featured =====
     isFeatured: {
       type: Boolean,
       default: false,
     },
-    featuredOrder: Number, // Untuk urutan di featured section
-    // Analytics
+    featuredOrder: Number,
+
+    // ===== Analytics (internal) =====
     viewCount: {
       type: Number,
       default: 0,
@@ -187,11 +111,11 @@ const productSchema = new mongoose.Schema(
       default: 0,
     },
     clickCount: {
-      // Total click ke marketplace links
       type: Number,
       default: 0,
     },
-    // Publishing
+
+    // ===== Publishing =====
     publishStatus: {
       type: String,
       enum: ["draft", "published", "scheduled"],
@@ -199,12 +123,12 @@ const productSchema = new mongoose.Schema(
     },
     publishedAt: Date,
     scheduledPublishAt: Date,
-    // Reviews allowed
+
+    // ===== Reviews =====
     allowReviews: {
       type: Boolean,
       default: true,
     },
-    // Average rating (denormalized untuk performance)
     averageRating: {
       type: Number,
       default: 0,
@@ -215,6 +139,8 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+
+    // ===== Audit =====
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -255,8 +181,36 @@ productSchema.virtual("discountPercentage").get(function () {
   return 0;
 });
 
+// Product Image Schema
+const productGallerySchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ["image", "video"],
+      required: true,
+      default: "image",
+    },
+    url: {
+      type: String,
+      required: true,
+    },
+    alt: {
+      type: String,
+      trim: true,
+    },
+    order: {
+      type: Number,
+      default: 0,
+    },
+    isPrimary: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: true },
+);
+
 module.exports = {
   Product: mongoose.model("Product", productSchema),
-  Category: mongoose.model("Category", categorySchema),
-  Tag: mongoose.model("Tag", tagSchema),
+  ProductImage: mongoose.model("ProductSchema", productGallerySchema),
 };
